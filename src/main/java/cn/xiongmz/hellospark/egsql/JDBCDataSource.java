@@ -1,0 +1,62 @@
+package cn.xiongmz.hellospark.egsql;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
+
+public class JDBCDataSource {
+
+	public static void main(String[] args) {
+		SparkConf conf = new SparkConf().setAppName("JDBCDataSource").setMaster("local");
+		SparkSession ss = SparkSession.builder().config(conf).getOrCreate();
+		Map<String, String> options = new HashMap<>();
+		options.put("url", "jdbc:mysql://10.8.15.14:3306/xmz_");
+		options.put("user", "root");// 注意，不是username
+		options.put("password", "123456");
+		options.put("dbtable", "sys_user");
+		Dataset<Row> sysUserDF = ss.read().format("jdbc").options(options).load();
+		sysUserDF.show();
+		
+		// 将DataFrame数据存储到MySQL表中，这在公司很常见，要掌握
+		// 要引入mysql-connector-java-5.1.30.jar
+		// 集群中在spark-defaults.conf中配置以下两行
+		// spark.driver.extraClassPath=/path/xxx/mysql-connector-java-5.1.30.jar
+		// spark.executor.extraClassPath=/path/xxx/mysql-connector-java-5.1.30.jar
+		// 在call里面创建数据库连接将非常耗数据库资源，必须优化。见代码：
+		sysUserDF.javaRDD().foreach(new VoidFunction<Row>() {
+
+			private static final long serialVersionUID = -5295500782973246042L;
+
+			@Override
+			public void call(Row row) throws Exception {
+				String sql = "insert into sys_user_temp values('" + row.getString(0) + "')";
+				Class.forName("com.mysql.jdbc.Driver");
+				Connection conn = null;
+				Statement stat = null;
+				try {
+					conn = DriverManager.getConnection("jdbc:mysql://10.8.15.14:3306/xmz_", "root", "123456");
+					stat = conn.createStatement();
+					stat.executeUpdate(sql);
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					if (stat != null) {
+						stat.close();
+					}
+					if (conn != null) {
+						conn.close();
+					}
+				}
+			}
+		});
+	}
+
+}
