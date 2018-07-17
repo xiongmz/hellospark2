@@ -5,6 +5,12 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
+/**
+ * 通用 加载/保存 功能
+ * load/Save
+ * @author xiongmz
+ *
+ */
 public class LoadSave {
 	
 	public static void main(String[] args) {
@@ -15,6 +21,7 @@ public class LoadSave {
 		Dataset<Row> usersDF = sparkSession.read().load("src/main/resources/users.parquet");
 		usersDF.printSchema();
 		usersDF.show();
+		
 		//会在工程里新建namesAndColors.parquet目录
 		usersDF.select("name", "favorite_color").write().save("namesAndColors.parquet");
 		

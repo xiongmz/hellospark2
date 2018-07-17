@@ -23,7 +23,7 @@ public class WordCount {
 
 		// map端：行变成词
 		//		JavaRDD<String> text = sc.textFile("hdfs://mycluster/usr/file/test.txt");
-		JavaRDD<String> text = sc.textFile("src/main/resources/test.txt", 3);// 3参数指最小的partition数量，因此读完后的partition会大于等于3
+		JavaRDD<String> text = sc.textFile("hellospark2/src/main/resources/1.txt", 3);// 3参数指最小的partition数量，因此读完后的partition会大于等于3
 		JavaRDD<String> words = text.flatMap(new FlatMapFunction<String, String>() {
 
 			private static final long serialVersionUID = 1L;

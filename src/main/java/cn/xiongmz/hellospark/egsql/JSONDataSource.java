@@ -26,7 +26,9 @@ public class JSONDataSource {
 		JavaSparkContext sc = new JavaSparkContext(conf);
 		SparkSession sparkSession = SparkSession.builder().config(conf).getOrCreate();
 		// 姓名-分数
+		// read from json
 		Dataset<Row> df = sparkSession.read().json("src/main/resources/studentscore.json");
+		// read from json
 		df.createOrReplaceTempView("student_score");
 		df.show();
 		Dataset<Row> goodScoreStudentsDS = sparkSession.sql("select name,score from student_score where score >= 81");// 成绩大于80的学生姓名+成绩

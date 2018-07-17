@@ -60,11 +60,13 @@ public class GroupTopN {
 
 					@Override
 					public int compare(Integer o1, Integer o2) {
-						return -(o1 - o2);//排序
+						//排序
+						return -(o1 - o2);
 					}
 
 				});
-				list = list.subList(0, 2);//截取前n个元素
+				//截取前n个元素
+				list = list.subList(0, 2);
 				return new Tuple2<String, Iterable<Integer>>(tuple._1, list);
 			}
 

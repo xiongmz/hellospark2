@@ -1,0 +1,5 @@
+kaoqindate,thetype,unitname,code,name,weekday,worktype,thisstarttime,firsttime,lasttime,realhours,Achidao,Azhaotui,Akuanggong,Aoverwork,Alostrecord,volidchuqin,ifvocation,vocations,ifvocation1,vocations1,ifvocation2,vocations2,ifoutside,outsides,iftiaoxiu,tiaoxiu,ifoverwork,overwork,inputer,inputtime,infos,thereson,lastchidao,lastzhaotui,lastkuanggong,lastlostrecord,ifaudit,auditname,audittime,daysornight,unitcode,em_id,workcity
+2017/12/1 0:00,职员,聚联网络-产品与研发部,F00014,笪黎丽,星期五,工作日,8:45:00,8:41:52,18:00:00,9.3,,,,0.3,,1,,,,,,,,,,,,,系统计算,2018/1/3 15:00,,,,,,,N,,,白班,KD01.0004.0001,108CB638-0697-43D0-BD0A-1258A1D79DDB,武汉
+2017/12/2 0:00,职员,聚联网络-产品与研发部,F00014,笪黎丽,星期六,周末,0:00:00,,,,,,,,,,,,,,,,,,,,,,系统计算,2018/1/3 15:00,,,,,,,N,,,白班,KD01.0004.0001,108CB638-0697-43D0-BD0A-1258A1D79DDB,武汉
+2017/12/3 0:00,职员,聚联网络-产品与研发部,F00014,笪黎丽,星期天,周末,0:00:00,,,,,,,,,,,,,,,,,,,,,,系统计算,2018/1/3 15:00,,,,,,,N,,,白班,KD01.0004.0001,108CB638-0697-43D0-BD0A-1258A1D79DDB,武汉
+2017/12/4 0:00,职员,聚联网络-产品与研发部,F00014,笪黎丽,星期一,工作日,8:45:00,8:35:50,18:10:12,9.6,,,,0.4,,1,,,,,,,,,,,,,系统计算,2018/1/3 15:00,,,,,,,N,,,白班,KD01.0004.0001,108CB638-0697-43D0-BD0A-1258A1D79DDB,武汉
