@@ -1,21 +1,20 @@
 package cn.xiongmz.hellospark.egstreaming;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
-import org.apache.spark.streaming.api.java.JavaPairReceiverInputDStream;
-import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
+import org.apache.spark.streaming.api.java.*;
+import org.apache.spark.streaming.kafka010.ConsumerStrategies;
+import org.apache.spark.streaming.kafka010.KafkaUtils;
 
+import org.apache.spark.streaming.kafka010.LocationStrategies;
 import scala.Tuple2;
 
 /**
@@ -34,9 +33,16 @@ public class KafkaReceiverWorkcount {
 			SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("KafkaReceiverWorkcount");
 			
 			jssc = new JavaStreamingContext(conf, Durations.seconds(5));
-			Map<String, Integer> kafkaParams = new HashMap<String, Integer>();
-			kafkaParams.put("hellokafka", 1);// 数值1是线程数量。即用几个线程来接收kafka的数据
-			String zkList = "nd1:2181,nd2:2181,nd3:2181";
+
+			String brokerList = "nd1:9092,nd2:9092,nd7:9092";
+			String topic = "hellokafka";
+			Map<String, Object> kafkaParams = new HashMap<String, Object>(16);
+			kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+			kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group");
+			kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+			kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+			Set<String> topics = new HashSet<>();
+			topics.add(topic);
 			
 			// KafkaUtils是在spark-streaming-kafka依赖中
 			/*
@@ -44,15 +50,18 @@ public class KafkaReceiverWorkcount {
 			 * 不同的数据源得要不同的线程
 			 * 基于这个缺点及其他原因，有另外的方式来接收数据：Direct
 			 */
-			JavaPairReceiverInputDStream<String, String> lines = KafkaUtils.createStream(
-					jssc, zkList, "WordcountConsumerGroup", kafkaParams);
-			
-			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<Tuple2<String,String>, String>() {
-				private static final long serialVersionUID = -1789151233380960724L;
+			// Create direct kafka stream with brokers and topics
+			// kafka080有KafkaUtils.createStream()，kafka010没有这个api了，只有Direct
+			JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(
+					jssc,
+					LocationStrategies.PreferConsistent(),
+					ConsumerStrategies.Subscribe(topics, kafkaParams));
+			// Get the lines
+			JavaDStream<String> lines = messages.map(ConsumerRecord::value);
+			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
 				@Override
-				public Iterator<String> call(Tuple2<String, String> tuple) throws Exception {
-					// kafka中的元素是tuple类型键值对，键是偏移量，此处没什么意思，真正的数据在value中，即._2
-					return Arrays.asList(tuple._2.split(" ")).iterator();
+				public Iterator<String> call(String s) throws Exception {
+					return Arrays.asList(s.split(" ")).iterator();
 				}
 			});
 			JavaPairDStream<String, Integer> pairs = words.mapToPair(new PairFunction<String, String, Integer>() {
@@ -70,7 +79,6 @@ public class KafkaReceiverWorkcount {
 				}
 			});
 			wordcounts.print();//action操作
-			//wordcounts.print();//action操作
 			// 固定行
 			jssc.start();
 			jssc.awaitTermination();

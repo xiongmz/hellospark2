@@ -7,18 +7,19 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.streaming.Durations;
-import org.apache.spark.streaming.api.java.JavaDStream;
-import org.apache.spark.streaming.api.java.JavaPairDStream;
-import org.apache.spark.streaming.api.java.JavaPairInputDStream;
-import org.apache.spark.streaming.api.java.JavaStreamingContext;
-import org.apache.spark.streaming.kafka.KafkaUtils;
+import org.apache.spark.streaming.api.java.*;
+import org.apache.spark.streaming.kafka010.ConsumerStrategies;
+import org.apache.spark.streaming.kafka010.KafkaUtils;
 
-import kafka.serializer.StringDecoder;
+import org.apache.spark.streaming.kafka010.LocationStrategies;
 import scala.Tuple2;
 
 /**
@@ -35,29 +36,29 @@ public class KafkaDirectWorkcount {
 			//[2]，线程数必须大于等于2，因为ReceiverInputDStream会占用一个进程。如果设置为1，那么只会有1个线程从socket读取数据，没有多余线程来处理数据了。
 			SparkConf conf = new SparkConf().setMaster("local[1]").setAppName("KafkaDirectWorkcount");
 			jssc = new JavaStreamingContext(conf, Durations.seconds(5));
-			
-			Map<String, String> kafkaParams = new HashMap<String, String>();
-			kafkaParams.put("metadata.broker.list", "nd1:9092,nd2:9092,nd3:9092");
-			
+
+			String brokerList = "nd1:9092,nd2:9092,nd7:9092";
+			String topic = "hellokafka";
+			Map<String, Object> kafkaParams = new HashMap<String, Object>(16);
+			kafkaParams.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+			kafkaParams.put(ConsumerConfig.GROUP_ID_CONFIG, "consumer-group");
+			kafkaParams.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+			kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 			Set<String> topics = new HashSet<>();
-			topics.add("hellokafka");
+			topics.add(topic);
 			
 			// Direct是每隔一段时间主动从kafka里面取数据
-			JavaPairInputDStream<String, String> lines = KafkaUtils.createDirectStream(
+			JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(
 					jssc,
-					String.class,// 键类型。一般都是用这个
-					String.class,// 值类型。一般都是用这个
-					StringDecoder.class, // 键解析器。一般都是用这个
-					StringDecoder.class, // 值解析器。一般都是用这个
-					kafkaParams,
-					topics);
-			
-			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<Tuple2<String,String>, String>() {
-				private static final long serialVersionUID = -1789151233380960724L;
+					LocationStrategies.PreferConsistent(),
+					ConsumerStrategies.Subscribe(topics, kafkaParams));
+			// Get the lines
+			JavaDStream<String> lines = messages.map(ConsumerRecord::value);
+
+			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
 				@Override
-				public Iterator<String> call(Tuple2<String, String> tuple) throws Exception {
-					// kafka中的元素是tuple类型键值对，键是偏移量，此处没什么意思，真正的数据在value中，即._2
-					return Arrays.asList(tuple._2.split(" ")).iterator();
+				public Iterator<String> call(String s) throws Exception {
+					return Arrays.asList(s.split(" ")).iterator();
 				}
 			});
 			JavaPairDStream<String, Integer> pairs = words.mapToPair(new PairFunction<String, String, Integer>() {

@@ -1,5 +1,6 @@
 package cn.xiongmz.hellospark.hbase;
 
+/*
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
@@ -17,12 +18,13 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.VoidFunction;
 
 import scala.Tuple2;
-
+*/
 /**
  * @author xiongmz
  */
 public class HelloSparkOnHbase {
 	public static void main(String[] args) {
+		/*
 		SparkConf sparkConf = null;
 		Configuration hbaseConf = null;
 		JavaSparkContext sc = null;
@@ -58,5 +60,6 @@ public class HelloSparkOnHbase {
 				sc.close();
 			}
 		}
+	*/
 	}
 }
