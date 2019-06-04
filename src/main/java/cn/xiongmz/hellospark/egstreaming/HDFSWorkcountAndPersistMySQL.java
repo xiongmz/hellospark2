@@ -38,9 +38,17 @@ public class HDFSWorkcountAndPersistMySQL {
 	public static void main(String[] args) {
 		JavaStreamingContext jssc = null;
 		try {
+			// 文件流不需要运行一个接收器（receiver），因此，不需要额外分配内核
 			// 由于不像Socket一样需要ReceiverInputDStream启用线程来监听数据源，因此不强制要求线程数[2]大于等于2，设置为1就可以运行。
 			SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("HDFSWorkcount");
 			jssc = new JavaStreamingContext(conf, Durations.seconds(5));
+			/**
+			 * textFileStream(dataDirectory)
+			 * Spark Streaming 将监控dataDirectory 目录并且该目录中任何新建的文件 (写在嵌套目录中的文件是不支持的)
+			 * 文件必须具有相同的数据格式
+			 * 文件必须被创建在 dataDirectory 目录中，
+			 * 文件必须不能再更改，因此如果文件被连续地追加，新的数据将不会被读取。
+			 */
 			// from hdfs
 			JavaDStream<String> lines = jssc.textFileStream("hdfs://mycluster/xiongmz");
 			

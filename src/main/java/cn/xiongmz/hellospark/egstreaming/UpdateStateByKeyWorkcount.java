@@ -19,7 +19,7 @@ import scala.Tuple2;
 
 /**
  * 当前RDD的计算逻辑可以和之前RDD数据结果合并（如何合并可以自定义）
- * 代码参考：StreamingWorkcount.java
+ * 代码参考：SocketStreamingWorkcount.java
  * @author xiongmz
  *
  */
@@ -29,11 +29,12 @@ public class UpdateStateByKeyWorkcount {
 		JavaStreamingContext jssc = null;
 		try {
 			SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("UpdateStateByKeyWorkcount");
+			conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
 			jssc = new JavaStreamingContext(conf, Durations.seconds(5));
 			
-			jssc.checkpoint(".");//用于记住state。updateStateByKey必须的，固定这样写即可
+			jssc.checkpoint("E:/temp/checkpoint");//用于记住state。updateStateByKey必须的，固定这样写即可
 			
-			JavaReceiverInputDStream<String> lines = jssc.socketTextStream("nd1", 8888);
+			JavaReceiverInputDStream<String> lines = jssc.socketTextStream("vm-nd1", 8888);
 			
 			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
 				private static final long serialVersionUID = 5986920588831791764L;

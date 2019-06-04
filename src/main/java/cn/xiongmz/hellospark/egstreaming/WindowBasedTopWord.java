@@ -16,10 +16,14 @@ import org.apache.spark.streaming.api.java.JavaStreamingContext;
 import scala.Tuple2;
 
 /**
- * 滑动窗口方式 reduceByKeyAndWindow
+ * 滑动slides窗口方式 reduceByKeyAndWindow
  * 即每隔a秒计算当前历史b秒的数据，一般b大于a。这样就会有rdd会多次在batch中参与计算
  * 例如：第10分钟统计第1-第10分钟所有RDD，第11分钟统计第2-第11分钟所有RDD
  * 主要应用场景：最近一小时最热门的文章
+ * 任何一个窗口操作都需要指定两个参数：
+ * 	 window length（窗口长度） - 窗口的持续时间
+ *   sliding interval（滑动间隔） - 执行窗口操作的间隔
+ * 这两个参数必须是 source DStream 的 batch interval（批间隔）的倍数（例如5秒的倍数）
  * @author xiongmz
  *
  */
@@ -27,11 +31,12 @@ public class WindowBasedTopWord {
 	public static void main(String[] args) {
 		JavaStreamingContext jssc = null;
 		try {
-			SparkConf conf = new SparkConf().setMaster("local[1]").setAppName("WindowBasedTopWord").set("spark.default.parallelism", "100");
+			SparkConf conf = new SparkConf().setMaster("local[3]").setAppName("WindowBasedTopWord").set("spark.default.parallelism", "100");
+			conf.set("spark.streaming.stopGracefullyOnShutdown", "true");
 			jssc = new JavaStreamingContext(conf, Durations.seconds(5));
-			jssc.checkpoint(".");// .即在工程根目录建立uuid文件夹，里面存rdd信息
+			jssc.checkpoint("E:/temp/checkpoint");// 存rdd信息
 
-			JavaReceiverInputDStream<String> lines = jssc.socketTextStream("nd1", 8888);
+			JavaReceiverInputDStream<String> lines = jssc.socketTextStream("vm-nd1", 8888);
 
 			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
 				private static final long serialVersionUID = 5986920588831791764L;

@@ -48,7 +48,8 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_2.11</artifactId>
             <version>2.4.0</version>
-			<scope>provided</scope>
+			<!--scope为provided会导致本地运行SocketStreamingWorkcount报找不到类JavaStreamingContext-->
+			<!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>

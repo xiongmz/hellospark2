@@ -46,7 +46,15 @@ public class KafkaDirectWorkcount {
 			kafkaParams.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 			Set<String> topics = new HashSet<>();
 			topics.add(topic);
-			
+
+			// KafkaUtils是在spark-streaming-kafka依赖中
+			/*
+			 * Receiver的缺点是会占用一个线程来接数据，如果这个线程所在的机器down了，那么就接收不到数据了
+			 * 不同的数据源得要不同的线程
+			 * 基于这个缺点及其他原因，有另外的方式来接收数据：Direct
+			 */
+			// Create direct kafka stream with brokers and topics
+			// kafka080有KafkaUtils.createStream()，kafka010没有这个api了，只有Direct
 			// Direct是每隔一段时间主动从kafka里面取数据
 			JavaInputDStream<ConsumerRecord<String, String>> messages = KafkaUtils.createDirectStream(
 					jssc,
@@ -56,6 +64,7 @@ public class KafkaDirectWorkcount {
 			JavaDStream<String> lines = messages.map(ConsumerRecord::value);
 
 			JavaDStream<String> words = lines.flatMap(new FlatMapFunction<String, String>() {
+				private static final long serialVersionUID = 1L;
 				@Override
 				public Iterator<String> call(String s) throws Exception {
 					return Arrays.asList(s.split(" ")).iterator();
