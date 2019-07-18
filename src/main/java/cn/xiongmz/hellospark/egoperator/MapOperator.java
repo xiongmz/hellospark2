@@ -17,7 +17,7 @@ import org.apache.spark.api.java.function.VoidFunction;
 public class MapOperator {
 	//MapOperator：对RDD中每一个元素进行操作
 	public static void main(String[] args) {
-		SparkConf conf = new SparkConf().setMaster("local").setAppName(Thread.currentThread().getStackTrace()[1].getClassName());
+		SparkConf conf = new SparkConf().setMaster("local").setAppName("MapOperator");
 		JavaSparkContext sc = new JavaSparkContext(conf);
 
 		List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5);// 数据来源为数组
@@ -33,7 +33,7 @@ public class MapOperator {
 				return number * 10; //对每个元素乘以10
 			}
 		});
-		results.foreach(new VoidFunction<Integer>() {// 迭代数据内从并打印
+		results.foreach(new VoidFunction<Integer>() {// 迭代数据并打印
 
 			private static final long serialVersionUID = 8273443512811768259L;
 

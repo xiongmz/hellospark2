@@ -16,6 +16,8 @@ import org.apache.spark.sql.SparkSession;
 
 /**
  * JDBC读取和保存
+ * 参考：http://spark.apache.org/docs/2.4.0/sql-data-sources-jdbc.html
+ * examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java
  * @author xiongmz
  *
  */
